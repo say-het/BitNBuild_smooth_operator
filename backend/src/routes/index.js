@@ -1,0 +1,35 @@
+import { Router } from 'express';
+import { healthRouter } from './health.routes.js';
+import { eventsRouter } from './events.routes.js';
+import { hospitalsRouter } from './hospitals.routes.js';
+import { incidentsRouter } from './incidents.routes.js';
+import { resourcesRouter } from './resources.routes.js';
+import { simulationsRouter } from './simulations.routes.js';
+import { geoRouter } from './geo.routes.js';
+import { optimizationRouter } from './optimization.routes.js';
+import { assignmentsRouter } from './assignments.routes.js';
+import { alertsRouter } from './alerts.routes.js';
+import { monitoringRouter } from './monitoring.routes.js';
+import { realtimeRouter } from './realtime.routes.js';
+import { copilotRouter } from './copilot.routes.js';
+import { analyticsRouter } from './analytics.routes.js';
+import { twitterConnectorRouter } from '../TwitterConnector/routes.js';
+
+export const apiRouter = Router();
+
+apiRouter.use('/health', healthRouter);
+apiRouter.use('/events', eventsRouter);
+apiRouter.use('/incidents', incidentsRouter);
+apiRouter.use('/resources', resourcesRouter);
+apiRouter.use('/hospitals', hospitalsRouter);
+apiRouter.use('/simulations', simulationsRouter);
+apiRouter.use('/geo', geoRouter);
+apiRouter.use('/optimization', optimizationRouter);
+apiRouter.use('/assignments', assignmentsRouter);
+apiRouter.use('/alerts', alertsRouter);
+apiRouter.use('/monitoring', monitoringRouter);
+apiRouter.use('/realtime', realtimeRouter);
+apiRouter.use('/copilot', copilotRouter);
+apiRouter.use('/analytics', analyticsRouter);
+apiRouter.use('/twitter', twitterConnectorRouter);
+apiRouter.use('/tweets', twitterConnectorRouter);
