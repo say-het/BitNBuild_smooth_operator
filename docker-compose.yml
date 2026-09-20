@@ -1,0 +1,23 @@
+name: resqai
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.5
+    platform: linux/amd64
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: resqai
+      POSTGRES_PASSWORD: resqai_dev
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resqai -d resqai"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - resqai_postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres/init-resqai.sql:/docker-entrypoint-initdb.d/20_init-resqai.sql:ro
+
+volumes:
+  resqai_postgres_data:
