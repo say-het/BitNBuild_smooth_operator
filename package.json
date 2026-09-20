@@ -1,0 +1,39 @@
+{
+  "name": "resqai",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n frontend,backend -c cyan,magenta \"npm run dev --workspace frontend\" \"npm run dev --workspace backend\"",
+    "dev:optimizer": "node -e \"const { spawn } = require('child_process'); const fs = require('fs'); const py = fs.existsSync('.venv/Scripts/python.exe') ? '.venv/Scripts/python.exe' : '.venv/bin/python'; spawn(py, ['optimizer/app.py'], { stdio: 'inherit' });\"",
+    "dev:full": "concurrently -n app,optimizer -c cyan,yellow \"npm run dev\" \"npm run dev:optimizer\"",
+    "build": "npm run build --workspace frontend",
+    "lint": "npm run lint --workspaces --if-present",
+    "start": "npm run start --workspace backend",
+    "check": "npm run lint && npm run build",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "db:test": "npm run test:db --workspace backend",
+    "download:facilities": "node backend/scripts/download-osm-facilities.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.5",
+    "prisma": "^6.12.0"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.19.0"
+  }
+}
