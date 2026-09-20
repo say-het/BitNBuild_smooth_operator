@@ -1,0 +1,623 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+enum EventSource {
+  CITIZEN
+  EMERGENCY_CALL
+  SENSOR
+  FIELD_TEAM
+  HOSPITAL
+  GOVERNMENT
+  WEATHER
+  SIMULATOR
+  SYSTEM
+}
+
+enum EventProcessingStatus {
+  RECEIVED
+  PROCESSING
+  PROCESSED
+  FAILED
+  IGNORED
+}
+
+enum EventType {
+  EMERGENCY_REPORT
+  EMERGENCY_CALL
+  SENSOR_READING
+  FIELD_UPDATE
+  RESOURCE_UPDATE
+  HOSPITAL_UPDATE
+  WEATHER_UPDATE
+  ROAD_UPDATE
+  SYSTEM_ALERT
+}
+
+enum IncidentType {
+  FIRE
+  FLOOD
+  ROAD_ACCIDENT
+  EARTHQUAKE
+  MEDICAL_EMERGENCY
+  HAZMAT
+  BUILDING_COLLAPSE
+  INFRASTRUCTURE_FAILURE
+  OTHER
+}
+
+enum IncidentPriority {
+  P0
+  P1
+  P2
+  P3
+}
+
+enum IncidentStatus {
+  CREATED
+  ASSESSING
+  RESOURCE_RECOMMENDED
+  RESOURCE_ASSIGNED
+  EN_ROUTE
+  ON_SCENE
+  RESOLVING
+  RESOLVED
+  DELAYED
+  ESCALATED
+  REOPTIMIZED
+  CANCELLED
+}
+
+enum IncidentEventRelationshipType {
+  PRIMARY_SIGNAL
+  SUPPORTING_SIGNAL
+  DUPLICATE
+  CORROBORATING_SIGNAL
+  FIELD_UPDATE
+  SYSTEM_UPDATE
+}
+
+enum ResourceType {
+  AMBULANCE
+  FIRE_TRUCK
+  POLICE_UNIT
+  RESCUE_TEAM
+  MEDICAL_TEAM
+  HAZMAT_TEAM
+  HELICOPTER
+  EQUIPMENT
+  OTHER
+}
+
+enum ResourceStatus {
+  AVAILABLE
+  RESERVED
+  ASSIGNED
+  EN_ROUTE
+  ON_SCENE
+  UNAVAILABLE
+  MAINTENANCE
+  OFFLINE
+}
+
+enum AssignmentStatus {
+  ASSIGNED
+  ACCEPTED
+  EN_ROUTE
+  ON_SCENE
+  COMPLETED
+  CANCELLED
+  REASSIGNED
+}
+
+enum AssignmentOrigin {
+  MANUAL
+  OPTIMIZER
+  ESCALATION
+  SYSTEM
+}
+
+enum HospitalStatus {
+  OPERATIONAL
+  LIMITED
+  OVERLOADED
+  CLOSED
+}
+
+enum SensorType {
+  SMOKE
+  WATER_LEVEL
+  TEMPERATURE
+  STRUCTURAL
+  TRAFFIC
+  AIR_QUALITY
+  OTHER
+}
+
+enum SensorStatus {
+  ACTIVE
+  INACTIVE
+  FAULT
+  MAINTENANCE
+}
+
+enum ReadingQuality {
+  GOOD
+  SUSPECT
+  BAD
+  UNKNOWN
+}
+
+enum AlertType {
+  CRITICAL_INCIDENT
+  RESPONSE_DELAY
+  RESOURCE_SHORTAGE
+  HOSPITAL_OVERLOAD
+  ESCALATION
+  SYSTEM
+}
+
+enum AlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  RESOLVED
+  DISMISSED
+}
+
+enum AuditActorType {
+  OPERATOR
+  SYSTEM
+  AI_AGENT
+  RESPONDER
+  SIMULATOR
+  INTEGRATION
+}
+
+enum SimulationScenarioType {
+  INDUSTRIAL_FIRE
+  FLOOD
+  ROAD_ACCIDENT
+  EARTHQUAKE
+}
+
+enum SimulationStatus {
+  CREATED
+  RUNNING
+  PAUSED
+  COMPLETED
+  STOPPED
+  FAILED
+}
+
+enum AIAnalysisType {
+  INCIDENT_INTELLIGENCE
+}
+
+enum AIAnalysisStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  SKIPPED
+}
+
+enum CorrelationStatus {
+  PENDING
+  NEW_INCIDENT
+  CORRELATED
+}
+
+model Event {
+  id                     String                                 @id @default(uuid()) @db.Uuid
+  eventId                String                                 @unique @map("event_id")
+  source                 EventSource
+  eventType              EventType                              @map("event_type")
+  timestamp              DateTime                               @db.Timestamptz(3)
+  receivedAt             DateTime                               @default(now()) @map("received_at") @db.Timestamptz(3)
+  latitude               Decimal?                               @db.Decimal(9, 6)
+  longitude              Decimal?                               @db.Decimal(9, 6)
+  location               Unsupported("geography(Point, 4326)")?
+  locationAccuracyMeters Int?                                   @map("location_accuracy_meters")
+  payload                Json
+  metadata               Json?
+  processingStatus       EventProcessingStatus                  @default(RECEIVED) @map("processing_status")
+  processingError        String?                                @map("processing_error")
+  createdAt              DateTime                               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt              DateTime                               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  incidents              IncidentEvent[]
+  aiAnalyses             AIAnalysis[]
+  incidentCandidates     IncidentCandidate[]
+
+  @@index([source])
+  @@index([eventType])
+  @@index([timestamp(sort: Desc)])
+  @@index([processingStatus])
+  @@index([location], type: Gist, map: "events_location_gix")
+  @@map("events")
+}
+
+model AIAnalysis {
+  id           String             @id @default(uuid()) @db.Uuid
+  analysisId   String             @unique @map("analysis_id")
+  eventId      String             @map("event_id") @db.Uuid
+  analysisType AIAnalysisType     @map("analysis_type")
+  provider     String
+  model        String
+  status       AIAnalysisStatus   @default(PENDING)
+  result       Json?
+  confidence   Decimal?           @db.Decimal(4, 3)
+  evidence     String[]           @default([])
+  errorCode    String?            @map("error_code")
+  errorMessage String?            @map("error_message")
+  attempts     Int                @default(0)
+  metadata     Json?
+  startedAt    DateTime?          @map("started_at") @db.Timestamptz(3)
+  completedAt  DateTime?          @map("completed_at") @db.Timestamptz(3)
+  createdAt    DateTime           @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime           @updatedAt @map("updated_at") @db.Timestamptz(3)
+  event        Event              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  candidate    IncidentCandidate?
+
+  @@unique([eventId, analysisType])
+  @@index([status])
+  @@index([analysisType])
+  @@index([createdAt(sort: Desc)])
+  @@map("ai_analyses")
+}
+
+model IncidentCandidate {
+  id                   String            @id @default(uuid()) @db.Uuid
+  candidateId          String            @unique @map("candidate_id")
+  eventId              String            @map("event_id") @db.Uuid
+  analysisId           String            @unique @map("analysis_id") @db.Uuid
+  incidentType         IncidentType      @map("incident_type")
+  title                String
+  summary              String
+  severity             Int
+  priority             IncidentPriority
+  confidence           Decimal           @db.Decimal(4, 3)
+  estimatedVictims     Int?              @map("estimated_victims")
+  estimatedInjured     Int?              @map("estimated_injured")
+  estimatedTrapped     Int?              @map("estimated_trapped")
+  hazards              String[]          @default([])
+  requiredCapabilities String[]          @default([]) @map("required_capabilities")
+  latitude             Decimal?          @db.Decimal(9, 6)
+  longitude            Decimal?          @db.Decimal(9, 6)
+  locationConfidence   Decimal?          @map("location_confidence") @db.Decimal(4, 3)
+  evidence             String[]          @default([])
+  correlationStatus    CorrelationStatus @default(PENDING) @map("correlation_status")
+  correlatedIncidentId String?           @map("correlated_incident_id") @db.Uuid
+  correlationMetadata  Json?             @map("correlation_metadata")
+  correlatedAt         DateTime?         @map("correlated_at") @db.Timestamptz(3)
+  createdAt            DateTime          @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime          @updatedAt @map("updated_at") @db.Timestamptz(3)
+  event                Event             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  analysis             AIAnalysis        @relation(fields: [analysisId], references: [id], onDelete: Cascade)
+  correlatedIncident   Incident?         @relation(fields: [correlatedIncidentId], references: [id], onDelete: SetNull)
+
+  @@index([eventId])
+  @@index([incidentType])
+  @@index([priority])
+  @@index([createdAt(sort: Desc)])
+  @@index([correlationStatus])
+  @@index([correlatedIncidentId])
+  @@map("incident_candidates")
+}
+
+model Incident {
+  id                   String                                 @id @default(uuid()) @db.Uuid
+  incidentId           String                                 @unique @map("incident_id")
+  type                 IncidentType
+  severity             Int
+  priority             IncidentPriority
+  status               IncidentStatus                         @default(CREATED)
+  confidence           Decimal?                               @db.Decimal(4, 3)
+  title                String
+  summary              String?
+  estimatedVictims     Int?                                   @map("estimated_victims")
+  estimatedInjured     Int?                                   @map("estimated_injured")
+  estimatedTrapped     Int?                                   @map("estimated_trapped")
+  hazards              String[]                               @default([])
+  latitude             Decimal?                               @db.Decimal(9, 6)
+  longitude            Decimal?                               @db.Decimal(9, 6)
+  location             Unsupported("geography(Point, 4326)")?
+  detectedAt           DateTime                               @map("detected_at") @db.Timestamptz(3)
+  resolvedAt           DateTime?                              @map("resolved_at") @db.Timestamptz(3)
+  createdAt            DateTime                               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt            DateTime                               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  events               IncidentEvent[]
+  requiredCapabilities IncidentCapability[]
+  assignments          ResourceAssignment[]
+  currentResources     Resource[]                             @relation("CurrentResourceIncident")
+  alerts               Alert[]
+  candidates           IncidentCandidate[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([severity])
+  @@index([type])
+  @@index([createdAt(sort: Desc)])
+  @@index([updatedAt(sort: Desc)])
+  @@index([location], type: Gist, map: "incidents_location_gix")
+  @@map("incidents")
+}
+
+model IncidentEvent {
+  incidentId          String                        @map("incident_id") @db.Uuid
+  eventId             String                        @map("event_id") @db.Uuid
+  relationshipType    IncidentEventRelationshipType @map("relationship_type")
+  confidence          Decimal?                      @db.Decimal(4, 3)
+  correlationScore    Decimal?                      @map("correlation_score") @db.Decimal(4, 3)
+  correlationMetadata Json?                         @map("correlation_metadata")
+  createdAt           DateTime                      @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime                      @updatedAt @map("updated_at") @db.Timestamptz(3)
+  incident            Incident                      @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  event               Event                         @relation(fields: [eventId], references: [id], onDelete: Restrict)
+
+  @@id([incidentId, eventId])
+  @@index([eventId])
+  @@index([relationshipType])
+  @@map("incident_events")
+}
+
+model Capability {
+  id                  String               @id @default(uuid()) @db.Uuid
+  code                String               @unique
+  name                String
+  description         String?
+  createdAt           DateTime             @default(now()) @map("created_at") @db.Timestamptz(3)
+  resources           ResourceCapability[]
+  requiredByIncidents IncidentCapability[]
+
+  @@map("capabilities")
+}
+
+model IncidentCapability {
+  incidentId   String     @map("incident_id") @db.Uuid
+  capabilityId String     @map("capability_id") @db.Uuid
+  quantity     Int        @default(1)
+  incident     Incident   @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  capability   Capability @relation(fields: [capabilityId], references: [id], onDelete: Restrict)
+
+  @@id([incidentId, capabilityId])
+  @@index([capabilityId])
+  @@map("incident_capabilities")
+}
+
+model Resource {
+  id                String                                 @id @default(uuid()) @db.Uuid
+  resourceId        String                                 @unique @map("resource_id")
+  name              String
+  type              ResourceType
+  status            ResourceStatus                         @default(AVAILABLE)
+  latitude          Decimal?                               @db.Decimal(9, 6)
+  longitude         Decimal?                               @db.Decimal(9, 6)
+  location          Unsupported("geography(Point, 4326)")?
+  availability      Json?
+  capacity          Json?
+  currentIncidentId String?                                @map("current_incident_id") @db.Uuid
+  homeBase          String?                                @map("home_base")
+  metadata          Json?
+  createdAt         DateTime                               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt         DateTime                               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  currentIncident   Incident?                              @relation("CurrentResourceIncident", fields: [currentIncidentId], references: [id], onDelete: SetNull)
+  capabilities      ResourceCapability[]
+  assignments       ResourceAssignment[]
+  alerts            Alert[]
+
+  @@index([type])
+  @@index([status])
+  @@index([currentIncidentId])
+  @@index([location], type: Gist, map: "resources_location_gix")
+  @@map("resources")
+}
+
+model ResourceCapability {
+  resourceId   String     @map("resource_id") @db.Uuid
+  capabilityId String     @map("capability_id") @db.Uuid
+  proficiency  Int        @default(1)
+  resource     Resource   @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+  capability   Capability @relation(fields: [capabilityId], references: [id], onDelete: Restrict)
+
+  @@id([resourceId, capabilityId])
+  @@index([capabilityId])
+  @@map("resource_capabilities")
+}
+
+model ResourceAssignment {
+  id                  String           @id @default(uuid()) @db.Uuid
+  assignmentId        String           @unique @map("assignment_id")
+  incidentId          String           @map("incident_id") @db.Uuid
+  resourceId          String           @map("resource_id") @db.Uuid
+  status              AssignmentStatus @default(ASSIGNED)
+  origin              AssignmentOrigin @default(MANUAL)
+  role                String?
+  assignedAt          DateTime         @default(now()) @map("assigned_at") @db.Timestamptz(3)
+  acceptedAt          DateTime?        @map("accepted_at") @db.Timestamptz(3)
+  departedAt          DateTime?        @map("departed_at") @db.Timestamptz(3)
+  arrivedAt           DateTime?        @map("arrived_at") @db.Timestamptz(3)
+  completedAt         DateTime?        @map("completed_at") @db.Timestamptz(3)
+  estimatedArrival    DateTime?        @map("estimated_arrival") @db.Timestamptz(3)
+  actualArrival       DateTime?        @map("actual_arrival") @db.Timestamptz(3)
+  assignmentReason    String?          @map("assignment_reason")
+  distanceMeters      Int?             @map("distance_meters")
+  estimatedTravelTime Int?             @map("estimated_travel_time_seconds")
+  optimizationScore   Decimal?         @map("optimization_score") @db.Decimal(8, 4)
+  metadata            Json?
+  createdAt           DateTime         @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt           DateTime         @updatedAt @map("updated_at") @db.Timestamptz(3)
+  incident            Incident         @relation(fields: [incidentId], references: [id], onDelete: Restrict)
+  resource            Resource         @relation(fields: [resourceId], references: [id], onDelete: Restrict)
+
+  @@index([incidentId])
+  @@index([resourceId])
+  @@index([status])
+  @@index([incidentId, status])
+  @@index([resourceId, status])
+  @@map("resource_assignments")
+}
+
+model Hospital {
+  id                         String                                 @id @default(uuid()) @db.Uuid
+  hospitalId                 String                                 @unique @map("hospital_id")
+  name                       String
+  latitude                   Decimal                                @db.Decimal(9, 6)
+  longitude                  Decimal                                @db.Decimal(9, 6)
+  location                   Unsupported("geography(Point, 4326)")?
+  status                     HospitalStatus                         @default(OPERATIONAL)
+  totalBeds                  Int                                    @map("total_beds")
+  availableBeds              Int                                    @map("available_beds")
+  icuBeds                    Int                                    @map("icu_beds")
+  availableIcuBeds           Int                                    @map("available_icu_beds")
+  emergencyCapacity          Int                                    @map("emergency_capacity")
+  availableEmergencyCapacity Int                                    @map("available_emergency_capacity")
+  ambulanceCapacity          Int                                    @map("ambulance_capacity")
+  statusUpdatedAt            DateTime                               @default(now()) @map("status_updated_at") @db.Timestamptz(3)
+  metadata                   Json?
+  createdAt                  DateTime                               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt                  DateTime                               @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status])
+  @@index([location], type: Gist, map: "hospitals_location_gix")
+  @@map("hospitals")
+}
+
+model Sensor {
+  id            String                                 @id @default(uuid()) @db.Uuid
+  sensorId      String                                 @unique @map("sensor_id")
+  name          String
+  type          SensorType
+  latitude      Decimal                                @db.Decimal(9, 6)
+  longitude     Decimal                                @db.Decimal(9, 6)
+  location      Unsupported("geography(Point, 4326)")?
+  status        SensorStatus                           @default(ACTIVE)
+  unit          String
+  thresholds    Json?
+  metadata      Json?
+  lastReadingAt DateTime?                              @map("last_reading_at") @db.Timestamptz(3)
+  createdAt     DateTime                               @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt     DateTime                               @updatedAt @map("updated_at") @db.Timestamptz(3)
+  readings      SensorReading[]
+
+  @@index([type])
+  @@index([status])
+  @@index([location], type: Gist, map: "sensors_location_gix")
+  @@map("sensors")
+}
+
+model SensorReading {
+  id        String         @id @default(uuid()) @db.Uuid
+  readingId String         @unique @map("reading_id")
+  sensorId  String         @map("sensor_id") @db.Uuid
+  timestamp DateTime       @db.Timestamptz(3)
+  value     Decimal        @db.Decimal(18, 6)
+  unit      String
+  quality   ReadingQuality @default(GOOD)
+  metadata  Json?
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+  sensor    Sensor         @relation(fields: [sensorId], references: [id], onDelete: Cascade)
+
+  @@index([sensorId, timestamp(sort: Desc)])
+  @@index([timestamp(sort: Desc)])
+  @@map("sensor_readings")
+}
+
+model Alert {
+  id             String      @id @default(uuid()) @db.Uuid
+  alertId        String      @unique @map("alert_id")
+  dedupKey       String?     @map("dedup_key")
+  type           AlertType
+  severity       Int
+  title          String
+  message        String
+  incidentId     String?     @map("incident_id") @db.Uuid
+  resourceId     String?     @map("resource_id") @db.Uuid
+  status         AlertStatus @default(ACTIVE)
+  acknowledgedAt DateTime?   @map("acknowledged_at") @db.Timestamptz(3)
+  resolvedAt     DateTime?   @map("resolved_at") @db.Timestamptz(3)
+  metadata       Json?
+  createdAt      DateTime    @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt      DateTime    @updatedAt @map("updated_at") @db.Timestamptz(3)
+  incident       Incident?   @relation(fields: [incidentId], references: [id], onDelete: SetNull)
+  resource       Resource?   @relation(fields: [resourceId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([type])
+  @@index([dedupKey])
+  @@index([createdAt(sort: Desc)])
+  @@index([incidentId])
+  @@index([status, createdAt(sort: Desc)])
+  @@map("alerts")
+}
+
+model AuditLog {
+  id            String         @id @default(uuid()) @db.Uuid
+  auditId       String         @unique @map("audit_id")
+  actorType     AuditActorType @map("actor_type")
+  actorId       String?        @map("actor_id")
+  action        String
+  entityType    String         @map("entity_type")
+  entityId      String         @map("entity_id")
+  previousState Json?          @map("previous_state")
+  newState      Json?          @map("new_state")
+  metadata      Json?
+  createdAt     DateTime       @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@index([entityType, entityId])
+  @@index([actorType, actorId])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model SimulationRun {
+  id              String                          @id @default(uuid()) @db.Uuid
+  runId           String                          @unique @map("run_id")
+  scenarioType    SimulationScenarioType          @map("scenario_type")
+  status          SimulationStatus                @default(CREATED)
+  seed            Int
+  timeScale       Int                             @map("time_scale")
+  simulationTime  Int                             @default(0) @map("simulation_time_seconds")
+  eventsGenerated Int                             @default(0) @map("events_generated")
+  nextEventIndex  Int                             @default(0) @map("next_event_index")
+  configuration   Json
+  worldState      Json                            @map("world_state")
+  failure         Json?
+  startedAt       DateTime?                       @map("started_at") @db.Timestamptz(3)
+  endedAt         DateTime?                       @map("ended_at") @db.Timestamptz(3)
+  createdAt       DateTime                        @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt       DateTime                        @updatedAt @map("updated_at") @db.Timestamptz(3)
+  groundTruth     SimulationGroundTruthIncident[]
+
+  @@index([status])
+  @@index([scenarioType])
+  @@index([createdAt(sort: Desc)])
+  @@map("simulation_runs")
+}
+
+model SimulationGroundTruthIncident {
+  id                   String        @id @default(uuid()) @db.Uuid
+  simulationRunId      String        @map("simulation_run_id") @db.Uuid
+  groundTruthId        String        @map("ground_truth_id")
+  type                 String
+  latitude             Decimal       @db.Decimal(9, 6)
+  longitude            Decimal       @db.Decimal(9, 6)
+  startOffsetSeconds   Int           @map("start_offset_seconds")
+  severity             Int
+  estimatedVictims     Int           @map("estimated_victims")
+  hazards              String[]      @default([])
+  requiredCapabilities String[]      @default([]) @map("required_capabilities")
+  truth                Json
+  createdAt            DateTime      @default(now()) @map("created_at") @db.Timestamptz(3)
+  simulationRun        SimulationRun @relation(fields: [simulationRunId], references: [id], onDelete: Cascade)
+
+  @@unique([simulationRunId, groundTruthId])
+  @@index([simulationRunId])
+  @@map("simulation_ground_truth_incidents")
+}

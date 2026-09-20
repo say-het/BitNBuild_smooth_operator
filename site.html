@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ResQ AI - Full System Architecture & Engineering Blueprint</title>
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    code, pre, .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .glass-card {
+      background: rgba(18, 24, 38, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .gradient-hero {
+      background: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.15), transparent 70%),
+                  radial-gradient(circle at 80% 20%, rgba(99, 102, 241, 0.12), transparent 50%);
+    }
+    .text-gradient {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 50%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .glow-node:hover {
+      filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.6));
+      cursor: pointer;
+    }
+    .mermaid {
+      min-height: 280px;
+    }
+  </style>
+</head>
+<body class="bg-base-300 text-base-content min-h-screen selection:bg-primary selection:text-white">
+
+  <!-- Top Navigation Bar -->
+  <header class="navbar bg-base-100/90 backdrop-blur sticky top-0 z-50 border-b border-base-content/10 px-6 lg:px-10">
+    <div class="navbar-start flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-indigo-500/25">
+        🛡️
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-black tracking-tight text-white">ResQ AI</h1>
+          <span class="badge badge-primary badge-xs font-semibold">v0.1.0 ARCHITECTURE</span>
+        </div>
+        <p class="text-xs text-base-content/60 font-mono">End-to-End Emergency Coordination Platform</p>
+      </div>
+    </div>
+    
+    <div class="navbar-center hidden xl:flex">
+      <ul class="menu menu-horizontal gap-1 text-sm font-medium">
+        <li><a href="#master-diagram" class="hover:text-primary">Architecture Map</a></li>
+        <li><a href="#whiteboards" class="hover:text-primary font-bold text-accent">✏️ Excalidraw Flowcharts</a></li>
+        <li><a href="#subsystems" class="hover:text-primary">Subsystems (7 Layers)</a></li>
+        <li><a href="#ai-boundary" class="hover:text-primary">AI vs Deterministic Core</a></li>
+        <li><a href="#state-machines" class="hover:text-primary">State Machines</a></li>
+      </ul>
+    </div>
+
+    <div class="navbar-end gap-3">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-base-200/80 border border-white/5 text-xs font-mono">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span class="text-emerald-400 font-semibold">PostgreSQL/PostGIS Truth</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-6 lg:p-10 space-y-12">
+
+    <!-- Hero Title & Architecture Summary -->
+    <section class="glass-card rounded-3xl p-8 lg:p-12 relative overflow-hidden gradient-hero">
+      <div class="relative z-10 max-w-4xl space-y-5">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
+          <span>🏛️ Full System Architecture Blueprint</span>
+          <span>•</span>
+          <span>Interactive Excalidraw Whiteboards Enabled</span>
+        </div>
+        <h2 class="text-4xl sm:text-5xl font-extrabold tracking-tight leading-none text-white">
+          Intelligent Autonomous <span class="text-gradient">Emergency Dispatch & Coordination</span>
+        </h2>
+        <p class="text-base-content/80 text-lg leading-relaxed max-w-3xl">
+          ResQ AI transforms multi-source chaotic emergency feeds into a single operational picture with sub-second correlation, AI intelligence, OSRM routing, and OR-Tools optimal dispatch. 
+          <span class="text-accent font-semibold">Click any whiteboard diagram below in Lavish to open it in full Excalidraw mode for drawing, moving shapes, and annotating!</span>
+        </p>
+
+        <!-- Quick Spec Tags -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+          <div class="bg-base-100/60 p-3.5 rounded-2xl border border-white/5">
+            <span class="text-[11px] text-base-content/60 uppercase tracking-wider font-semibold block">Source of Truth</span>
+            <span class="text-sm font-bold font-mono text-primary mt-0.5 block">PostgreSQL + PostGIS</span>
+          </div>
+          <div class="bg-base-100/60 p-3.5 rounded-2xl border border-white/5">
+            <span class="text-[11px] text-base-content/60 uppercase tracking-wider font-semibold block">AI Intelligence</span>
+            <span class="text-sm font-bold font-mono text-secondary mt-0.5 block">Gemini 2.5 Structured</span>
+          </div>
+          <div class="bg-base-100/60 p-3.5 rounded-2xl border border-white/5">
+            <span class="text-[11px] text-base-content/60 uppercase tracking-wider font-semibold block">Optimization Engine</span>
+            <span class="text-sm font-bold font-mono text-accent mt-0.5 block">Google OR-Tools CP-SAT</span>
+          </div>
+          <div class="bg-base-100/60 p-3.5 rounded-2xl border border-white/5">
+            <span class="text-[11px] text-base-content/60 uppercase tracking-wider font-semibold block">Realtime Transport</span>
+            <span class="text-sm font-bold font-mono text-info mt-0.5 block">Socket.IO + Redis Bus</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Master Architecture SVG Diagram -->
+    <section id="master-diagram" class="space-y-6">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <span class="badge badge-soft badge-primary mb-2">Visual Topology</span>
+          <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Full System Topology & Data Flow</h3>
+        </div>
+        <p class="text-sm text-base-content/70 max-w-lg">
+          Complete spatial overview of the 5 architectural tiers from multi-channel signal ingestion to real-time command dispatch.
+        </p>
+      </div>
+
+      <!-- High-res Master SVG -->
+      <div class="glass-card rounded-3xl p-6 lg:p-8 overflow-hidden shadow-2xl border border-white/10">
+        <svg viewBox="0 0 1180 720" width="100%" height="100%" class="w-full h-auto text-base-content select-none">
+          <defs>
+            <linearGradient id="gradSource" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#0284c7" />
+              <stop offset="100%" stop-color="#0369a1" />
+            </linearGradient>
+            <linearGradient id="gradIngest" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#2563eb" />
+              <stop offset="100%" stop-color="#1d4ed8" />
+            </linearGradient>
+            <linearGradient id="gradAI" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#9333ea" />
+              <stop offset="100%" stop-color="#7e22ce" />
+            </linearGradient>
+            <linearGradient id="gradDB" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#059669" />
+              <stop offset="100%" stop-color="#047857" />
+            </linearGradient>
+            <linearGradient id="gradOpt" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#d97706" />
+              <stop offset="100%" stop-color="#b45309" />
+            </linearGradient>
+            <linearGradient id="gradFrontend" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#4f46e5" />
+              <stop offset="100%" stop-color="#3730a3" />
+            </linearGradient>
+            <filter id="glowShadow" x="-10%" y="-10%" width="120%" height="120%">
+              <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#000" flood-opacity="0.45"/>
+            </filter>
+            <marker id="arrowHead" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 8 5 L 0 9 z" fill="#38bdf8" />
+            </marker>
+            <marker id="arrowHeadGreen" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 8 5 L 0 9 z" fill="#34d399" />
+            </marker>
+            <marker id="arrowHeadPurple" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 1 L 8 5 L 0 9 z" fill="#c084fc" />
+            </marker>
+          </defs>
+
+          <!-- LAYER 1: MULTI-CHANNEL INGESTION (TOP) -->
+          <rect x="30" y="20" width="1120" height="95" rx="18" fill="#0f172a" fill-opacity="0.8" stroke="#334155" stroke-width="1.5"/>
+          <text x="50" y="44" fill="#94a3b8" font-size="11" font-family="'JetBrains Mono', monospace" font-weight="700">LAYER 1: MULTI-CHANNEL INGESTION &amp; SIMULATION FEEDS</text>
+          
+          <g id="box-citizen" transform="translate(50, 50)" class="glow-node">
+            <rect width="160" height="50" rx="10" fill="url(#gradSource)" filter="url(#glowShadow)"/>
+            <text x="80" y="26" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Citizen / 911 Calls</text>
+            <text x="80" y="40" text-anchor="middle" fill="#bae6fd" font-size="9" font-family="'JetBrains Mono', monospace">Multipart / Audio / Web</text>
+          </g>
+
+          <g id="box-sensors" transform="translate(230, 50)" class="glow-node">
+            <rect width="160" height="50" rx="10" fill="url(#gradSource)" filter="url(#glowShadow)"/>
+            <text x="80" y="26" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">IoT &amp; Weather Sensors</text>
+            <text x="80" y="40" text-anchor="middle" fill="#bae6fd" font-size="9" font-family="'JetBrains Mono', monospace">Smoke, Heat, Seismic</text>
+          </g>
+
+          <g id="box-twitter" transform="translate(410, 50)" class="glow-node">
+            <rect width="170" height="50" rx="10" fill="url(#gradSource)" filter="url(#glowShadow)"/>
+            <text x="85" y="26" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Social Firehose (WSS)</text>
+            <text x="85" y="40" text-anchor="middle" fill="#bae6fd" font-size="9" font-family="'JetBrains Mono', monospace">Bluesky Jetstream (10 KW)</text>
+          </g>
+
+          <g id="box-field" transform="translate(600, 50)" class="glow-node">
+            <rect width="160" height="50" rx="10" fill="url(#gradSource)" filter="url(#glowShadow)"/>
+            <text x="80" y="26" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Field Responder GPS</text>
+            <text x="80" y="40" text-anchor="middle" fill="#bae6fd" font-size="9" font-family="'JetBrains Mono', monospace">Unit Telemetry &amp; Status</text>
+          </g>
+
+          <g id="box-sim" transform="translate(780, 50)" class="glow-node">
+            <rect width="170" height="50" rx="10" fill="url(#gradSource)" filter="url(#glowShadow)"/>
+            <text x="85" y="26" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Synthetic World Sim</text>
+            <text x="85" y="40" text-anchor="middle" fill="#bae6fd" font-size="9" font-family="'JetBrains Mono', monospace">Deterministic Scenarios</text>
+          </g>
+
+          <g id="box-hosp" transform="translate(970, 50)" class="glow-node">
+            <rect width="160" height="50" rx="10" fill="url(#gradSource)" filter="url(#glowShadow)"/>
+            <text x="80" y="26" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Hospital Telemetry</text>
+            <text x="80" y="40" text-anchor="middle" fill="#bae6fd" font-size="9" font-family="'JetBrains Mono', monospace">ER, ICU, Trauma Beds</text>
+          </g>
+
+          <!-- Downward Connectors -->
+          <path d="M 130 100 L 130 145" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowHead)"/>
+          <path d="M 310 100 L 310 145" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowHead)"/>
+          <path d="M 495 100 L 495 145" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowHead)"/>
+          <path d="M 680 100 L 680 145" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowHead)"/>
+          <path d="M 865 100 L 865 145" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowHead)"/>
+          <path d="M 1050 100 L 1050 145" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrowHead)"/>
+
+          <!-- LAYER 2: CANONICAL INGESTION & PERSISTENCE -->
+          <rect x="30" y="150" width="1120" height="90" rx="18" fill="#1e1b4b" fill-opacity="0.8" stroke="#4338ca" stroke-width="1.5"/>
+          <text x="50" y="174" fill="#a5b4fc" font-size="11" font-family="'JetBrains Mono', monospace" font-weight="700">LAYER 2: EVENT NORMALIZATION &amp; CANONICAL PERSISTENCE</text>
+
+          <g transform="translate(60, 182)">
+            <rect width="280" height="46" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1"/>
+            <text x="140" y="22" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Source Adapters &amp; Zod Validation</text>
+            <text x="140" y="36" text-anchor="middle" fill="#c7d2fe" font-size="9" font-family="'JetBrains Mono', monospace">Schema Sanitization, Media Storage</text>
+          </g>
+
+          <path d="M 340 205 L 390 205" stroke="#6366f1" stroke-width="2" marker-end="url(#arrowHead)"/>
+
+          <g transform="translate(400, 182)">
+            <rect width="320" height="46" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1"/>
+            <text x="160" y="22" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Canonical Event Model + Idempotency</text>
+            <text x="160" y="36" text-anchor="middle" fill="#c7d2fe" font-size="9" font-family="'JetBrains Mono', monospace">Deterministic Hash, Deduplication</text>
+          </g>
+
+          <path d="M 720 205 L 770 205" stroke="#6366f1" stroke-width="2" marker-end="url(#arrowHead)"/>
+
+          <g transform="translate(780, 182)">
+            <rect width="340" height="46" rx="8" fill="#312e81" stroke="#6366f1" stroke-width="1"/>
+            <text x="170" y="22" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">PostgreSQL Persistence &amp; EVENT_RECEIVED</text>
+            <text x="170" y="36" text-anchor="middle" fill="#c7d2fe" font-size="9" font-family="'JetBrains Mono', monospace">Async detached event bus emit</text>
+          </g>
+
+          <!-- Split to AI and Correlation -->
+          <path d="M 590 240 L 590 275" stroke="#a855f7" stroke-width="2.5" marker-end="url(#arrowHeadPurple)"/>
+
+          <!-- LAYER 3: INTELLIGENCE, CORRELATION & POSTGIS TRUTH (MIDDLE) -->
+          <rect x="30" y="280" width="1120" height="180" rx="18" fill="#18181b" fill-opacity="0.9" stroke="#3f3f46" stroke-width="1.5"/>
+          <text x="50" y="304" fill="#d4d4d8" font-size="11" font-family="'JetBrains Mono', monospace" font-weight="700">LAYER 3: AI INTELLIGENCE &amp; DETERMINISTIC SPATIO-TEMPORAL CORRELATION</text>
+
+          <!-- Incident Intelligence -->
+          <g transform="translate(50, 320)">
+            <rect width="320" height="120" rx="12" fill="url(#gradAI)" filter="url(#glowShadow)"/>
+            <text x="160" y="26" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">Incident Intelligence (Gemini 2.5)</text>
+            <text x="160" y="44" text-anchor="middle" fill="#e9d5ff" font-size="10" font-family="'JetBrains Mono', monospace">Structured JSON (Schema-Restricted)</text>
+            <rect x="15" y="55" width="290" height="52" rx="6" fill="#3b0764" fill-opacity="0.7"/>
+            <text x="25" y="72" fill="#d8b4fe" font-size="9">• Unstructured text, 911 calls, imagery triage</text>
+            <text x="25" y="86" fill="#d8b4fe" font-size="9">• Outputs IncidentCandidate (Type, Severity, Conf)</text>
+            <text x="25" y="100" fill="#d8b4fe" font-size="9">• Sensor deterministic rules (bypass AI for 0-latency)</text>
+          </g>
+
+          <path d="M 370 380 L 415 380" stroke="#a855f7" stroke-width="2" marker-end="url(#arrowHeadPurple)"/>
+
+          <!-- Correlation Engine -->
+          <g transform="translate(425, 320)">
+            <rect width="320" height="120" rx="12" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5" filter="url(#glowShadow)"/>
+            <text x="160" y="26" text-anchor="middle" fill="#fff" font-size="13" font-weight="bold">Deterministic Correlation Engine</text>
+            <text x="160" y="44" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="'JetBrains Mono', monospace">PostGIS Spatio-Temporal Fusion</text>
+            <rect x="15" y="55" width="290" height="52" rx="6" fill="#0f172a" fill-opacity="0.8"/>
+            <text x="25" y="72" fill="#93c5fd" font-size="9">• Distance &lt; 500m &amp; Time Window &lt; 30m</text>
+            <text x="25" y="86" fill="#93c5fd" font-size="9">• Text similarity + Capability overlap score</text>
+            <text x="25" y="100" fill="#93c5fd" font-size="9">• Corroborates / creates canonical Incident</text>
+          </g>
+
+          <path d="M 745 380 L 790 380" stroke="#34d399" stroke-width="2" marker-end="url(#arrowHeadGreen)"/>
+
+          <!-- PostGIS Database Truth -->
+          <g transform="translate(800, 310)">
+            <rect width="330" height="135" rx="14" fill="url(#gradDB)" stroke="#10b981" stroke-width="2" filter="url(#glowShadow)"/>
+            <text x="165" y="30" text-anchor="middle" fill="#fff" font-size="14" font-weight="black">POSTGRESQL + POSTGIS</text>
+            <text x="165" y="48" text-anchor="middle" fill="#a7f3d0" font-size="10" font-family="'JetBrains Mono', monospace">Authoritative Operational Store</text>
+            <rect x="15" y="60" width="300" height="64" rx="6" fill="#064e3b" fill-opacity="0.7"/>
+            <text x="25" y="78" fill="#6ee7b7" font-size="9">• Incidents, Events, Resources, Hospitals</text>
+            <text x="25" y="94" fill="#6ee7b7" font-size="9">• Assignments, Audit Log, SLAs &amp; Alerts</text>
+            <text x="25" y="110" fill="#6ee7b7" font-size="9">• Partial unique indexes prevent double dispatch</text>
+          </g>
+
+          <!-- Branch to Engine layer -->
+          <path d="M 965 445 L 965 480" stroke="#10b981" stroke-width="2.5" marker-end="url(#arrowHeadGreen)"/>
+
+          <!-- LAYER 4: OPTIMIZATION, ROUTING & MONITORING (LOWER) -->
+          <rect x="30" y="490" width="1120" height="110" rx="18" fill="#1c1917" fill-opacity="0.9" stroke="#44403c" stroke-width="1.5"/>
+          <text x="50" y="514" fill="#a8a29e" font-size="11" font-family="'JetBrains Mono', monospace" font-weight="700">LAYER 4: ROUTING (OSRM), OPTIMIZATION (OR-TOOLS) &amp; ESCALATION</text>
+
+          <g transform="translate(50, 528)">
+            <rect width="250" height="58" rx="10" fill="#292524" stroke="#f59e0b" stroke-width="1.5"/>
+            <text x="125" y="24" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">OR-Tools Optimizer Sidecar</text>
+            <text x="125" y="40" text-anchor="middle" fill="#fbbf24" font-size="9" font-family="'JetBrains Mono', monospace">CP-SAT Solver / Greedy Fallback</text>
+          </g>
+
+          <g transform="translate(320, 528)">
+            <rect width="250" height="58" rx="10" fill="#292524" stroke="#38bdf8" stroke-width="1.5"/>
+            <text x="125" y="24" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">OSRM Routing &amp; Road GIS</text>
+            <text x="125" y="40" text-anchor="middle" fill="#7dd3fc" font-size="9" font-family="'JetBrains Mono', monospace">Live ETA, Hazard Blockages</text>
+          </g>
+
+          <g transform="translate(590, 528)">
+            <rect width="260" height="58" rx="10" fill="#292524" stroke="#ec4899" stroke-width="1.5"/>
+            <text x="130" y="24" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Monitoring &amp; SLA Scheduler</text>
+            <text x="130" y="40" text-anchor="middle" fill="#f472b6" font-size="9" font-family="'JetBrains Mono', monospace">Stalled Stages, Delay Escalation</text>
+          </g>
+
+          <g transform="translate(870, 528)">
+            <rect width="260" height="58" rx="10" fill="#292524" stroke="#10b981" stroke-width="1.5"/>
+            <text x="130" y="24" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">Response Orchestrator</text>
+            <text x="130" y="40" text-anchor="middle" fill="#6ee7b7" font-size="9" font-family="'JetBrains Mono', monospace">Atomic Claim, Lifecycle State</text>
+          </g>
+
+          <!-- Arrow to Presentation Layer -->
+          <path d="M 590 600 L 590 625" stroke="#6366f1" stroke-width="2.5" marker-end="url(#arrowHead)"/>
+
+          <!-- LAYER 5: REST, SOCKET.IO & FRONTEND COMMAND CENTER (BOTTOM) -->
+          <rect x="30" y="630" width="1120" height="75" rx="18" fill="#1e1b4b" fill-opacity="0.9" stroke="#6366f1" stroke-width="1.5"/>
+          <text x="50" y="652" fill="#c7d2fe" font-size="11" font-family="'JetBrains Mono', monospace" font-weight="700">LAYER 5: REALTIME TRANSPORT &amp; MAPLIBRE COMMAND CENTER</text>
+
+          <g transform="translate(50, 660)">
+            <rect width="220" height="34" rx="6" fill="#312e81" stroke="#818cf8" stroke-width="1"/>
+            <text x="110" y="21" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">REST API (Express 5.2)</text>
+          </g>
+
+          <g transform="translate(290, 660)">
+            <rect width="230" height="34" rx="6" fill="#312e81" stroke="#818cf8" stroke-width="1"/>
+            <text x="115" y="21" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">Socket.IO + Redis Adapter</text>
+          </g>
+
+          <g transform="translate(540, 660)">
+            <rect width="280" height="34" rx="6" fill="#312e81" stroke="#818cf8" stroke-width="1"/>
+            <text x="140" y="21" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">MapLibre GL Live Incident Map</text>
+          </g>
+
+          <g transform="translate(840, 660)">
+            <rect width="290" height="34" rx="6" fill="#312e81" stroke="#818cf8" stroke-width="1"/>
+            <text x="145" y="21" text-anchor="middle" fill="#fff" font-size="10" font-weight="bold">React 19 Command Center + Copilot</text>
+          </g>
+
+        </svg>
+      </div>
+    </section>
+
+    <!-- EXCALIDRAW WHITEBOARD FLOWS SECTION -->
+    <section id="whiteboards" class="space-y-8">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="badge badge-accent font-bold">✏️ EXCALIDRAW WHITEBOARD EXTENSIONS</span>
+            <span class="badge badge-outline badge-sm text-xs">Interactive • Click to Draw</span>
+          </div>
+          <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Interactive Flowcharts & Sequence Whiteboards</h3>
+        </div>
+        <p class="text-xs text-base-content/70 max-w-md">
+          In Lavish Editor, click on any of these flowcharts to activate full Excalidraw whiteboard mode where you can move shapes, draw notes, and export diagrams.
+        </p>
+      </div>
+
+      <!-- Flow 1: Ingestion & Dual AI Correlation Engine -->
+      <div class="glass-card rounded-3xl p-6 lg:p-8 space-y-4 border border-purple-500/30">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🧠</span>
+            <div>
+              <h4 class="text-lg font-bold text-white">Flow 1: Signal Ingestion, Dual AI Triage &amp; PostGIS Correlation</h4>
+              <p class="text-xs text-base-content/60 font-mono">Unstructured media $\rightarrow$ Structured Candidate $\rightarrow$ Spatio-temporal Fusion</p>
+            </div>
+          </div>
+          <span class="badge badge-soft badge-purple text-xs font-semibold">Gemini 2.5 + PostGIS ST_DWithin</span>
+        </div>
+
+        <div class="bg-base-100/70 p-4 rounded-2xl overflow-x-auto">
+          <pre class="mermaid">
+flowchart TD
+    subgraph InboundSignals["1. Multi-Source Raw Feeds"]
+        A1["📞 911 Call Audio Transcripts"]
+        A2["📱 Citizen Photo & Web Reports"]
+        A3["🌡️ IoT Sensors (Heat, Smoke, Flood)"]
+        A4["🌐 Social Media Jetstream Firehose"]
+    end
+
+    subgraph Normalization["2. Ingestion & Validation"]
+        B1["Source Adapters & Zod Schema Validation"]
+        B2["Idempotency Key Check (SHA256 Hash)"]
+        B3["Transactional PostgreSQL Event Insert"]
+        B4["EVENT_RECEIVED Event Bus Emit (Non-blocking)"]
+    end
+
+    subgraph IntelligenceTriage["3. Dual-Path Intelligence Triage"]
+        C1{"Event Source Type?"}
+        C2["Gemini 2.5 Structured Extraction\n(IncidentType, Severity 1-5, Casualties, Hazards)"]
+        C3["Deterministic Sensor Threshold Engine\n(Bypasses AI for 0ms Latency)"]
+        C4["Strict Schema & Enum Range Validation"]
+        C5["Validated IncidentCandidate"]
+    end
+
+    subgraph CorrelationEngine["4. PostGIS Spatio-Temporal Correlation"]
+        D1["PostGIS Spatial Window: ST_DWithin(500m)"]
+        D2["Time Window Match: Delta T < 30 Mins"]
+        D3["Text Similarity + Capability Match Score"]
+        D4{"Score >= Threshold?"}
+        D5["Create New Canonical Incident (REPORTED)"]
+        D6["Link as Corroboration / Duplicate / Field Update"]
+    end
+
+    InboundSignals --> B1 --> B2 --> B3 --> B4
+    B4 --> C1
+    C1 -- "Text / Audio / Photo" --> C2 --> C4
+    C1 -- "Telemetry / Sensor" --> C3 --> C4
+    C4 --> C5 --> D1 --> D2 --> D3 --> D4
+    D4 -- "No Existing Cluster" --> D5
+    D4 -- "Matches Cluster" --> D6
+          </pre>
+        </div>
+      </div>
+
+      <!-- Flow 2: Optimization, Resource Dispatch & OSRM Routing -->
+      <div class="glass-card rounded-3xl p-6 lg:p-8 space-y-4 border border-amber-500/30">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">⚡</span>
+            <div>
+              <h4 class="text-lg font-bold text-white">Flow 2: OR-Tools CP-SAT Optimization &amp; Atomic Dispatch Lock</h4>
+              <p class="text-xs text-base-content/60 font-mono">Capability Matrix $\rightarrow$ Constraint Solver $\rightarrow$ Atomic Claim $\rightarrow$ OSRM Routing</p>
+            </div>
+          </div>
+          <span class="badge badge-soft badge-warning text-xs font-semibold">OR-Tools CP-SAT + OSRM</span>
+        </div>
+
+        <div class="bg-base-100/70 p-4 rounded-2xl overflow-x-auto">
+          <pre class="mermaid">
+flowchart LR
+    subgraph Trigger["1. Dispatch Trigger"]
+        E1["Operator Opens Incident in Command Center"]
+        E2["Required Capabilities Identified\n(FIRE_ENGINE, HEAVY_RESCUE, EMS)"]
+    end
+
+    subgraph Optimization["2. CP-SAT Optimization Engine"]
+        F1["Query Available Units (PostGIS ST_Distance)"]
+        F2["Fetch Live Hospital ER/Trauma Capacity"]
+        F3{"OR-Tools Sidecar Reachable?"}
+        F4["OR-Tools CP-SAT Constraint Solver\n(Min Total Response Time + Max Coverage)"]
+        F5["Deterministic Greedy Solver Fallback\n(FALLBACK_GREEDY)"]
+        F6["Ranked Candidate Plan + ETA Breakdown"]
+    end
+
+    subgraph Orchestration["3. Atomic Response Orchestration"]
+        G1["Operator Confirms Single / Bulk Dispatch"]
+        G2["Begin Database Transaction"]
+        G3["Atomic Conditional Resource Claim\n(status = AVAILABLE -> ASSIGNED)"]
+        G4["Insert Assignment Record (Partial Unique Index)"]
+        G5["Commit Transaction & Update Incident -> DISPATCHED"]
+    end
+
+    subgraph RoutingRealtime["4. OSRM & Realtime Fanout"]
+        H1["OSRM Road-Network Geometry & Turn-by-Turn ETA"]
+        H2["Socket.IO Room Broadcast ('operations', 'incident:id')"]
+        H3["MapLibre Live Path & Responding Unit Rendered"]
+    end
+
+    Trigger --> F1 --> F2 --> F3
+    F3 -- "Yes" --> F4 --> F6
+    F3 -- "No / Timeout" --> F5 --> F6
+    F6 --> G1 --> G2 --> G3 --> G4 --> G5
+    G5 --> H1 --> H2 --> H3
+          </pre>
+        </div>
+      </div>
+
+      <!-- Flow 3: Realtime SLA Monitoring & Escalation -->
+      <div class="glass-card rounded-3xl p-6 lg:p-8 space-y-4 border border-pink-500/30">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🚨</span>
+            <div>
+              <h4 class="text-lg font-bold text-white">Flow 3: Realtime SLA Monitoring, Road Hazard Blockages &amp; Escalation</h4>
+              <p class="text-xs text-base-content/60 font-mono">Cron Monitoring $\rightarrow$ Stalled Stage / Delay Check $\rightarrow$ Gemini Escalation Analysis</p>
+            </div>
+          </div>
+          <span class="badge badge-soft badge-error text-xs font-semibold">Background SLA Watcher</span>
+        </div>
+
+        <div class="bg-base-100/70 p-4 rounded-2xl overflow-x-auto">
+          <pre class="mermaid">
+flowchart TD
+    subgraph MonitoringCycle["1. Automated Monitoring Cycle"]
+        M1["Background SLA Watcher (Interval: 15s / Manual Run)"]
+        M2["Evaluate Active Incidents & Stored ETA Delays"]
+        M3["Evaluate Road Hazards & Blocked Routes (ROAD_UPDATE)"]
+        M4["Evaluate Hospital Trauma Capacity Overload"]
+    end
+
+    subgraph DeterministicAlert["2. Deterministic Alert Generation"]
+        N1{"SLA / Delay / Hazard Exceeded?"}
+        N2["Generate Authoritative Alert (CRITICAL / HIGH / WARNING)"]
+        N3["Database Deduplication (Unique Constraint: Active Alert per Incident)"]
+        N4["Emit Alert over Socket.IO ('alerts' Room)"]
+    end
+
+    subgraph EscalationAI["3. Gemini Escalation Intelligence (Advisory)"]
+        P1["Trigger Escalation Agent with Incident Context"]
+        P2["Calculate Multi-Agency Impact & Second-Order Risks"]
+        P3["Propose Validated Alternative Resource Candidates"]
+        P4["Return Strict Structured Recommendation (Review-Only)"]
+    end
+
+    subgraph CommandAction["4. Operator Action & Reassignment"]
+        Q1["Operator Notification Inbox Badge & Sound"]
+        Q2["Operator Reviews Escalation Alternatives"]
+        Q3["Execute Atomic Unit Reassignment / Route Diversion"]
+    end
+
+    MonitoringCycle --> N1
+    N1 -- "Threshold Violated" --> N2 --> N3 --> N4
+    N3 --> P1 --> P2 --> P3 --> P4 --> Q1 --> Q2 --> Q3
+          </pre>
+        </div>
+      </div>
+
+      <!-- Flow 4: Twitter/Bluesky Social Media Firehose Flow -->
+      <div class="glass-card rounded-3xl p-6 lg:p-8 space-y-4 border border-blue-500/30">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-4">
+          <div class="flex items-center gap-3">
+            <span class="text-2xl">🌐</span>
+            <div>
+              <h4 class="text-lg font-bold text-white">Flow 4: Social Media (Twitter/Bluesky) Firehose Disaster Triage Flow</h4>
+              <p class="text-xs text-base-content/60 font-mono">/backend/src/TwitterConnector $\rightarrow$ WSS Firehose $\rightarrow$ SSE Live Stream</p>
+            </div>
+          </div>
+          <span class="badge badge-soft badge-info text-xs font-semibold">Native Node.js WebSocket</span>
+        </div>
+
+        <div class="bg-base-100/70 p-4 rounded-2xl overflow-x-auto">
+          <pre class="mermaid">
+flowchart LR
+    subgraph FirehoseWSS["1. Bluesky Jetstream Relay"]
+        T1["wss://jetstream2.us-west.bsky.network"]
+        T2["app.bsky.feed.post collection stream"]
+    end
+
+    subgraph Connector["2. TwitterConnector Engine"]
+        U1["Native Node WebSocket (Auto-Reconnect)"]
+        U2["Filter: kind == 'commit' && op == 'create'"]
+        U3["10 Disaster Keywords Matching (Fire, Crash, Earthquake...)"]
+        U4["In-Memory Ring Buffer (100 Recent Incidents)"]
+        U5["EventEmitter ('incident')"]
+    end
+
+    subgraph APIEndpoints["3. Express Routes & SSE"]
+        V1["GET /api/v1/twitter-connector/status"]
+        V2["GET /api/v1/twitter-connector/incidents"]
+        V3["GET /api/v1/twitter-connector/stream (SSE)"]
+        V4["POST /start | POST /stop"]
+    end
+
+    subgraph ResQCore["4. ResQ AI Event Ingestion"]
+        W1["POST /api/v1/events (Source: SOCIAL_FEED)"]
+        W2["Realtime Incident Correlation & Map Alert"]
+    end
+
+    FirehoseWSS --> U1 --> U2 --> U3 --> U4 --> U5
+    U5 --> APIEndpoints
+    APIEndpoints --> W1 --> W2
+          </pre>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Detailed Subsystems Grid (7 Core Pillars) -->
+    <section id="subsystems" class="space-y-6">
+      <div>
+        <span class="badge badge-soft badge-secondary mb-1">Architecture Deep-Dive</span>
+        <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">The 7 Subsystems of ResQ AI</h3>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+        <!-- 1. Ingestion Pipeline -->
+        <div class="glass-card p-6 rounded-3xl space-y-3 hover:border-primary/50 transition duration-200">
+          <div class="w-10 h-10 rounded-2xl bg-blue-500/20 text-blue-400 font-bold flex items-center justify-center text-lg">
+            1
+          </div>
+          <h4 class="text-lg font-bold text-white">Canonical Event Pipeline</h4>
+          <p class="text-xs text-base-content/70 leading-relaxed">
+            Multi-source adapters ingest 911 audio transcripts, citizen photo reports, IoT sensor thresholds, and social streams. Produces immutable canonical events with deterministic idempotency keys and transactional DB commits.
+          </p>
+          <div class="mockup-code text-xs bg-black/40 p-2">
+            <pre data-prefix=">"><code>POST /api/v1/events</code></pre>
+            <pre data-prefix=">"><code>POST /api/v1/events/citizen-report</code></pre>
+          </div>
+        </div>
+
+        <!-- 2. Dual AI & Correlation Engine -->
+        <div class="glass-card p-6 rounded-3xl space-y-3 hover:border-purple-500/50 transition duration-200">
+          <div class="w-10 h-10 rounded-2xl bg-purple-500/20 text-purple-400 font-bold flex items-center justify-center text-lg">
+            2
+          </div>
+          <h4 class="text-lg font-bold text-white">AI & Spatio-Temporal Correlation</h4>
+          <p class="text-xs text-base-content/70 leading-relaxed">
+            Gemini parses unstructured text/images into schema-restricted <code class="font-mono text-purple-300">IncidentCandidate</code> objects. PostGIS spatio-temporal clustering fuses signals within 500m &amp; 30-minute windows.
+          </p>
+          <div class="mockup-code text-xs bg-black/40 p-2">
+            <pre data-prefix=">"><code>gemini-2.5-flash (Structured Output)</code></pre>
+            <pre data-prefix=">"><code>PostGIS ST_DWithin + ST_Distance</code></pre>
+          </div>
+        </div>
+
+        <!-- 3. OR-Tools Optimizer Sidecar -->
+        <div class="glass-card p-6 rounded-3xl space-y-3 hover:border-amber-500/50 transition duration-200">
+          <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 font-bold flex items-center justify-center text-lg">
+            3
+          </div>
+          <h4 class="text-lg font-bold text-white">Resource Optimizer (OR-Tools)</h4>
+          <p class="text-xs text-base-content/70 leading-relaxed">
+            CP-SAT constraint optimization sidecar calculates optimal resource allocation matching vehicle capabilities (Fire, Hazmat, EMS, Heavy Rescue) with incident severity, travel times, and hospital beds.
+          </p>
+          <div class="mockup-code text-xs bg-black/40 p-2">
+            <pre data-prefix=">"><code>POST /api/v1/optimization/recommend</code></pre>
+            <pre data-prefix=">"><code>fallback: FALLBACK_GREEDY</code></pre>
+          </div>
+        </div>
+
+        <!-- 4. Response Orchestrator & State Machine -->
+        <div class="glass-card p-6 rounded-3xl space-y-3 hover:border-emerald-500/50 transition duration-200">
+          <div class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 font-bold flex items-center justify-center text-lg">
+            4
+          </div>
+          <h4 class="text-lg font-bold text-white">Response Orchestrator</h4>
+          <p class="text-xs text-base-content/70 leading-relaxed">
+            Executes single &amp; bulk dispatches inside atomic database transactions. Atomic conditional resource claims and partial unique active-assignment indexes strictly prevent double assignments under race conditions.
+          </p>
+          <div class="mockup-code text-xs bg-black/40 p-2">
+            <pre data-prefix=">"><code>POST /incidents/:id/assignments</code></pre>
+            <pre data-prefix=">"><code>POST /assignments/bulk</code></pre>
+          </div>
+        </div>
+
+        <!-- 5. OSRM Geospatial Routing & Road Blockages -->
+        <div class="glass-card p-6 rounded-3xl space-y-3 hover:border-cyan-500/50 transition duration-200">
+          <div class="w-10 h-10 rounded-2xl bg-cyan-500/20 text-cyan-400 font-bold flex items-center justify-center text-lg">
+            5
+          </div>
+          <h4 class="text-lg font-bold text-white">OSRM Routing &amp; Road Hazards</h4>
+          <p class="text-xs text-base-content/70 leading-relaxed">
+            Computes real road-network turn-by-turn routes, ETA geometry, and integrates real-time road hazard reports (e.g. collapsed bridges, flooded tunnels) to issue route warnings and reassignments.
+          </p>
+          <div class="mockup-code text-xs bg-black/40 p-2">
+            <pre data-prefix=">"><code>POST /api/v1/geo/route</code></pre>
+            <pre data-prefix=">"><code>GET /api/v1/geo/roads</code></pre>
+          </div>
+        </div>
+
+        <!-- 6. Realtime Delivery & Socket.IO Rooms -->
+        <div class="glass-card p-6 rounded-3xl space-y-3 hover:border-indigo-500/50 transition duration-200">
+          <div class="w-10 h-10 rounded-2xl bg-indigo-500/20 text-indigo-400 font-bold flex items-center justify-center text-lg">
+            6
+          </div>
+          <h4 class="text-lg font-bold text-white">Realtime Fan-Out &amp; Rooms</h4>
+          <p class="text-xs text-base-content/70 leading-relaxed">
+            Centralized Socket.IO transport multiplexed into scoped rooms (<code class="font-mono text-indigo-300">operations</code>, <code class="font-mono text-indigo-300">alerts</code>, <code class="font-mono text-indigo-300">incident:{id}</code>). Backed by Redis adapter for horizontal scaling across nodes.
+          </p>
+          <div class="mockup-code text-xs bg-black/40 p-2">
+            <pre data-prefix=">"><code>ws://localhost:4000/socket.io</code></pre>
+            <pre data-prefix=">"><code>Redis Socket.IO Adapter</code></pre>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Architectural Principle: AI vs Deterministic Boundary -->
+    <section id="ai-boundary" class="glass-card rounded-3xl p-8 lg:p-10 space-y-6">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <span class="badge badge-soft badge-accent mb-1">Core Architecture Principle</span>
+          <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">AI vs. Deterministic Authority Boundary</h3>
+        </div>
+        <div class="text-xs font-mono text-base-content/60">Strict separation of probabilistic &amp; stateful logic</div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- AI Boundary Card -->
+        <div class="bg-purple-950/30 border border-purple-500/30 rounded-2xl p-6 space-y-4">
+          <div class="flex items-center gap-2 text-purple-400 font-bold text-lg">
+            <span>✨</span>
+            <h4>Probabilistic AI Domain (Advisory &amp; Interpretation)</h4>
+          </div>
+          <ul class="space-y-2 text-xs text-purple-200/80 leading-relaxed">
+            <li class="flex items-start gap-2">
+              <span class="text-purple-400 font-bold">✓</span>
+              <span><strong>Incident Intelligence:</strong> Extracts entities, casualties, and hazards from free-text and citizen photos.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-purple-400 font-bold">✓</span>
+              <span><strong>Situation Analyst:</strong> Synthesizes cross-agency operational summaries, risks, and resource gap warnings.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-purple-400 font-bold">✓</span>
+              <span><strong>Command Copilot:</strong> Answers operator questions using bounded read-only operational tools.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-red-400 font-bold">✗</span>
+              <span><strong>CANNOT:</strong> Directly mutate state, assign resources, bypass validation, or execute dispatches.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Deterministic Core Card -->
+        <div class="bg-emerald-950/30 border border-emerald-500/30 rounded-2xl p-6 space-y-4">
+          <div class="flex items-center gap-2 text-emerald-400 font-bold text-lg">
+            <span>⚙️</span>
+            <h4>Deterministic Core Domain (Authoritative State)</h4>
+          </div>
+          <ul class="space-y-2 text-xs text-emerald-200/80 leading-relaxed">
+            <li class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>Spatio-Temporal Correlation:</strong> Strict mathematical PostGIS radius &amp; time-window incident grouping.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>Response Orchestrator:</strong> Transactional state machine with atomic DB locks preventing race conditions.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>Monitoring Engine:</strong> SLA timers, stalled stage triggers, ETA delay calculations, and alert deduplication.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold">✓</span>
+              <span><strong>PostgreSQL/PostGIS:</strong> The single source of operational truth across all services.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- State Machine & Lifecycle Flow -->
+    <section id="state-machines" class="glass-card rounded-3xl p-8 lg:p-10 space-y-6">
+      <div>
+        <span class="badge badge-soft badge-info mb-1">State Machines</span>
+        <h3 class="text-2xl sm:text-3xl font-bold tracking-tight text-white">Incident &amp; Assignment Lifecycles</h3>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Incident State Machine -->
+        <div class="space-y-4">
+          <h4 class="text-base font-bold text-primary flex items-center gap-2">
+            <span>🚨</span> Incident Operational State Machine
+          </h4>
+          <div class="bg-base-100/60 p-5 rounded-2xl border border-white/5 space-y-3 font-mono text-xs">
+            <div class="flex items-center justify-between p-2 rounded bg-base-200 border border-white/5">
+              <span class="text-blue-400 font-bold">REPORTED</span>
+              <span class="text-base-content/50">Initial candidate or sensor trigger</span>
+            </div>
+            <div class="text-center text-base-content/40">↓</div>
+            <div class="flex items-center justify-between p-2 rounded bg-base-200 border border-white/5">
+              <span class="text-amber-400 font-bold">ASSESSING</span>
+              <span class="text-base-content/50">Optimizer evaluates required capabilities</span>
+            </div>
+            <div class="text-center text-base-content/40">↓</div>
+            <div class="flex items-center justify-between p-2 rounded bg-base-200 border border-white/5">
+              <span class="text-indigo-400 font-bold">DISPATCHED</span>
+              <span class="text-base-content/50">Resources assigned and confirmed</span>
+            </div>
+            <div class="text-center text-base-content/40">↓</div>
+            <div class="flex items-center justify-between p-2 rounded bg-base-200 border border-white/5">
+              <span class="text-cyan-400 font-bold">ON_SCENE</span>
+              <span class="text-base-content/50">First unit arrives on site</span>
+            </div>
+            <div class="text-center text-base-content/40">↓</div>
+            <div class="flex items-center justify-between p-2 rounded bg-base-200 border border-white/5">
+              <span class="text-emerald-400 font-bold">RESOLVED / CANCELLED</span>
+              <span class="text-base-content/50">Post-incident audit &amp; unit release</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assignment State Machine -->
+        <div class="space-y-4">
+          <h4 class="text-base font-bold text-success flex items-center gap-2">
+            <span>🚑</span> Unit Assignment Lifecycle
+          </h4>
+          <div class="bg-base-100/60 p-5 rounded-2xl border border-white/5 space-y-3 font-mono text-xs">
+            <div class="flex items-center justify-between p-2 rounded bg-base-200 border border-white/5">
+              <span class="text-purple-400 font-bold">ASSIGNED</span>
+              <span class="text-base-content/50">Unit reserved via conditional claim</span>
+            </div>
+            <div class="text-center text-base-content/40">↓</div>
+            <div class="flex items-center justify-between p-2 rounded bg-base-200 border border-white/5">
+              <span class="text-blue-400 font-bold">EN_ROUTE</span>
+              <span class="text-base-content/50">OSRM dynamic route navigation active</span>
+            </div>
+            <div class="text-center text-base-content/40">↓</div>
+            <div class="flex items-center justify-between p-2 rounded bg-base-200 border border-white/5">
+              <span class="text-amber-400 font-bold">ON_SCENE</span>
+              <span class="text-base-content/50">On-site mitigation in progress</span>
+            </div>
+            <div class="text-center text-base-content/40">↓</div>
+            <div class="flex items-center justify-between p-2 rounded bg-base-200 border border-white/5">
+              <span class="text-emerald-400 font-bold">COMPLETED</span>
+              <span class="text-base-content/50">Unit restored to AVAILABLE status</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="footer footer-center p-8 bg-base-100 border-t border-base-content/10 text-base-content/60 text-xs">
+    <div>
+      <p class="font-bold text-white text-sm">ResQ AI Emergency Response &amp; Resource Coordination Platform</p>
+      <p class="font-mono text-base-content/50 mt-1">Built with React, Express, PostgreSQL/PostGIS, Gemini 2.5, OSRM &amp; Google OR-Tools</p>
+    </div>
+  </footer>
+
+  <!-- Theme-aware Mermaid Script for Lavish Excalidraw Whiteboard Activation -->
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs";
+
+    const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const paint = document.createElement("canvas").getContext("2d");
+
+    function toRgba(color) {
+      paint.clearRect(0, 0, 1, 1);
+      paint.fillStyle = "#000";
+      paint.fillStyle = color;
+      paint.fillRect(0, 0, 1, 1);
+      return paint.getImageData(0, 0, 1, 1).data;
+    }
+
+    function compositeRgba(foreground, background) {
+      const foregroundAlpha = foreground[3] / 255;
+      const backgroundAlpha = background[3] / 255;
+      const alpha = foregroundAlpha + backgroundAlpha * (1 - foregroundAlpha);
+      if (alpha === 0) return [0, 0, 0, 0];
+      return [
+        (foreground[0] * foregroundAlpha + background[0] * backgroundAlpha * (1 - foregroundAlpha)) / alpha,
+        (foreground[1] * foregroundAlpha + background[1] * backgroundAlpha * (1 - foregroundAlpha)) / alpha,
+        (foreground[2] * foregroundAlpha + background[2] * backgroundAlpha * (1 - foregroundAlpha)) / alpha,
+        alpha * 255,
+      ];
+    }
+
+    function pageIsDark() {
+      const root = document.documentElement;
+      const rootBackground = toRgba(getComputedStyle(root).backgroundColor);
+      const bodyBackground = document.body ? toRgba(getComputedStyle(document.body).backgroundColor) : [0, 0, 0, 0];
+      const [r, g, b, a] = compositeRgba(bodyBackground, rootBackground);
+      if (a > 0) {
+        return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5;
+      }
+      const colorScheme = getComputedStyle(root).colorScheme;
+      if (colorScheme.includes("dark") && !colorScheme.includes("light")) return true;
+      if (colorScheme.includes("light") && !colorScheme.includes("dark")) return false;
+      return darkQuery.matches;
+    }
+
+    const diagrams = [...document.querySelectorAll(".mermaid")].map((el) => ({ el, src: el.innerHTML }));
+    let applied;
+    let rendering = false;
+    let queued = false;
+
+    function queueRender() {
+      queued = true;
+      if (rendering) return;
+      void render();
+    }
+
+    async function render() {
+      rendering = true;
+      try {
+        while (queued) {
+          queued = false;
+          const theme = pageIsDark() ? "dark" : "default";
+          if (theme === applied) continue;
+          mermaid.initialize({ startOnLoad: false, theme, securityLevel: "strict" });
+          for (const { el, src } of diagrams) {
+            el.removeAttribute("data-processed");
+            el.innerHTML = src;
+          }
+          try {
+            await mermaid.run({ nodes: diagrams.map((d) => d.el) });
+          } catch (error) {
+            console.error("Mermaid diagram render failed:", error);
+            return;
+          }
+          applied = theme;
+        }
+      } finally {
+        rendering = false;
+        if (queued) queueRender();
+      }
+    }
+
+    if (document.readyState === "complete") queueRender();
+    else window.addEventListener("load", queueRender, { once: true });
+
+    const themeObserver = new MutationObserver(queueRender);
+    for (const el of [document.documentElement, document.body]) {
+      if (!el) continue;
+      themeObserver.observe(el, {
+        attributes: true,
+        attributeFilter: ["data-theme", "class", "style"],
+      });
+    }
+  </script>
+</body>
+</html>
